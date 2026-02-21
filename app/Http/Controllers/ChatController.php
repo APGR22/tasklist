@@ -94,6 +94,8 @@ class ChatController extends Controller
 
     public static function deleteMessage(array &$msg)
     {
+        # harus ganti demi privasi dari para pengembang
+        $msg['message'] = 'This message has been deleted';
         $msg['deleted'] = true;
     }
 
@@ -105,17 +107,23 @@ class ChatController extends Controller
     /**
      * Add to database
      * @param array $msg
+     * @param callable $action_after void (array $data_msgs, int $index_of_given_msg)
      * @return int index of the msg
      */
-    public static function addToDatabase(int $chat_id, array $msg): int
+    public static function addToDatabase(int $chat_id, array $msg, callable $action_after = null): int
     {
+        # harus bisa implementasi menunggu giliran antrean memasukkan data ke database
+
         $chat = Chat::find($chat_id);
         $data = $chat->data;
 
-        $index = array_push($data, $msg);
+        $new_length = array_push($data, $msg);
+        $index = $new_length - 1;
 
         $chat->data = $data;
         $chat->save();
+
+        if ($action_after) call_user_func($action_after, $data, $index);
 
         return $index;
     }
